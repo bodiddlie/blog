@@ -1,6 +1,5 @@
 import React from 'react';
 import styled from 'styled-components';
-import { Link } from 'gatsby';
 
 import 'prismjs/themes/prism-tomorrow.css';
 import '../index.css';
@@ -31,14 +30,4 @@ const Wrapper = styled.div`
   @media (max-width: 768px) {
     overflow-y: inherit;
   }
-`;
-
-const H3 = styled.h3`
-  margin: 0;
-  display: inline-block;
-  font-style: normal;
-`;
-
-const StyledLink = styled(Link)`
-  float: right;
 `;

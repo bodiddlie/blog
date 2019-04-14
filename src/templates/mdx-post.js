@@ -23,22 +23,20 @@ const DateLine = styled.span`
   color: #828282;
 `;
 export default ({ data }) => {
-  const post = data.contentfulBlogPost;
+  const post = data.mdx;
   const { url } = data.site.siteMetadata;
   return (
     <Layout>
       <Container>
         <Heading>
-          <H1>{post.title}</H1>
-          <DateLine>{post.date}</DateLine>
+          <H1>{post.frontmatter.title}</H1>
+          <DateLine>{post.frontmatter.date}</DateLine>
         </Heading>
-        <MDXRenderer>
-          {data.contentfulBlogPost.body.childMdx.code.body}
-        </MDXRenderer>
+        <MDXRenderer>{data.mdx.code.body}</MDXRenderer>
         <ReactDisqusComments
           shortname="regnipelk"
           url={`${url}${post.fields.slug}`}
-          title={post.title}
+          title={post.frontmatter.title}
           identifier={post.fields.slug}
         />
       </Container>
@@ -47,22 +45,20 @@ export default ({ data }) => {
 };
 
 export const query = graphql`
-  query BlogPostQuery($id: String!) {
+  query MdxPostQuery($id: String!) {
     site {
       siteMetadata {
         url
       }
     }
-    contentfulBlogPost(id: { eq: $id }) {
-      body {
-        childMdx {
-          code {
-            body
-          }
-        }
+    mdx(id: { eq: $id }) {
+      code {
+        body
       }
-      title
-      postDate(formatString: "MMM DD, YYYY")
+      frontmatter {
+        title
+        date(formatString: "MMM DD, YYYY")
+      }
       fields {
         slug
       }

@@ -1,6 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import { Link, graphql } from 'gatsby';
+import _ from 'lodash';
 
 import Layout from '../components/layout';
 
@@ -33,20 +34,43 @@ const H2 = styled.h2`
 `;
 
 export default ({ data }) => {
+  const allPosts = [...data.allContentfulBlogPost.edges, ...data.allMdx.edges];
+  const allPostsSorted = _.orderBy(
+    allPosts,
+    ['node.fields.sortDate'],
+    ['desc']
+  );
+
   return (
     <Layout>
       <Container>
         <Heading>{data.site.siteMetadata.title}</Heading>
-        {data.allMdx.edges.map(({ node }) => (
-          <div key={node.id}>
-            <DateLine>{node.frontmatter.date}</DateLine>
-            <H2>
-              <StyledLink to={node.fields.slug}>
-                {node.frontmatter.title}
-              </StyledLink>
-            </H2>
-            <p dangerouslySetInnerHTML={{ __html: node.excerpt }} />
-          </div>
+        {allPostsSorted.map(({ node }) => (
+          <React.Fragment key={node.id}>
+            {node.fields.postType === 'mdx' ? (
+              <div key={node.id}>
+                <DateLine>{node.frontmatter.date}</DateLine>
+                <H2>
+                  <StyledLink to={node.fields.slug}>
+                    {node.frontmatter.title}
+                  </StyledLink>
+                </H2>
+                <p dangerouslySetInnerHTML={{ __html: node.excerpt }} />
+              </div>
+            ) : (
+              <div key={node.id}>
+                <DateLine>{node.postDate}</DateLine>
+                <H2>
+                  <StyledLink to={node.fields.slug}>{node.title}</StyledLink>
+                </H2>
+                <p
+                  dangerouslySetInnerHTML={{
+                    __html: node.body.childMdx.excerpt,
+                  }}
+                />
+              </div>
+            )}
+          </React.Fragment>
         ))}
       </Container>
     </Layout>
@@ -60,7 +84,29 @@ export const query = graphql`
         title
       }
     }
-    allMdx(sort: { fields: [frontmatter___date], order: DESC }) {
+    allContentfulBlogPost(sort: { fields: [postDate], order: DESC }) {
+      edges {
+        node {
+          id
+          body {
+            childMdx {
+              excerpt(pruneLength: 400)
+            }
+          }
+          title
+          postDate(formatString: "MMM DD, YYYY")
+          fields {
+            slug
+            sortDate
+            postType
+          }
+        }
+      }
+    }
+    allMdx(
+      sort: { fields: [frontmatter___date], order: DESC }
+      filter: { frontmatter: { title: { ne: "" } } }
+    ) {
       edges {
         node {
           id
@@ -71,10 +117,12 @@ export const query = graphql`
             title
             date(formatString: "MMM DD, YYYY")
           }
-          excerpt(pruneLength: 480)
           fields {
             slug
+            sortDate
+            postType
           }
+          excerpt(pruneLength: 400)
         }
       }
     }

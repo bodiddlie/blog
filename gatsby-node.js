@@ -13,15 +13,74 @@ exports.onCreateNode = ({ node, getNode, actions }) => {
       name: 'slug',
       value: slug,
     });
+    createNodeField({
+      node,
+      name: 'postType',
+      value: 'mdx',
+    });
+    createNodeField({
+      node,
+      name: 'sortDate',
+      value: node.frontmatter.date,
+    });
+  } else if (node.internal.type === `ContentfulBlogPost`) {
+    const { title } = node;
+    const slug = '/' + title.toLowerCase().replace(/\s/g, '-') + '/';
+    createNodeField({
+      node,
+      name: 'slug',
+      value: slug,
+    });
+    createNodeField({
+      node,
+      name: 'postType',
+      value: 'contentful',
+    });
+    createNodeField({
+      node,
+      name: 'sortDate',
+      value: node.postDate,
+    });
   }
 };
 
 exports.createPages = ({ graphql, actions }) => {
   const { createPage } = actions;
-  return new Promise((resolve, reject) => {
+  const contentfulPosts = new Promise((resolve, reject) => {
     graphql(`
       {
-        allMdx {
+        allContentfulBlogPost {
+          edges {
+            node {
+              id
+              fields {
+                slug
+              }
+            }
+          }
+        }
+      }
+    `).then(result => {
+      if (result.data) {
+        result.data.allContentfulBlogPost.edges.forEach(({ node }) => {
+          createPage({
+            path: node.fields.slug,
+            component: path.resolve('./src/templates/blog-post.js'),
+            context: {
+              slug: node.fields.slug,
+              id: node.id,
+            },
+          });
+        });
+      }
+      resolve();
+    });
+  });
+
+  const mdxPosts = new Promise((resolve, reject) => {
+    graphql(`
+      {
+        allMdx(filter: { frontmatter: { title: { ne: "" } } }) {
           edges {
             node {
               id
@@ -36,7 +95,7 @@ exports.createPages = ({ graphql, actions }) => {
       result.data.allMdx.edges.forEach(({ node }) => {
         createPage({
           path: node.fields.slug,
-          component: path.resolve('./src/templates/blog-post.js'),
+          component: path.resolve('./src/templates/mdx-post.js'),
           context: {
             slug: node.fields.slug,
             id: node.id,
@@ -46,4 +105,6 @@ exports.createPages = ({ graphql, actions }) => {
       resolve();
     });
   });
+
+  return Promise.all([contentfulPosts, mdxPosts]);
 };
