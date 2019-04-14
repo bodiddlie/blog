@@ -35,12 +35,14 @@ export default ({ data }) => {
         <MDXRenderer>
           {data.contentfulBlogPost.body.childMdx.code.body}
         </MDXRenderer>
-        <ReactDisqusComments
-          shortname="regnipelk"
-          url={`${url}${post.fields.slug}`}
-          title={post.title}
-          identifier={post.fields.slug}
-        />
+        {post.comments ? (
+          <ReactDisqusComments
+            shortname="regnipelk"
+            url={`${url}${post.fields.slug}`}
+            title={post.title}
+            identifier={post.fields.slug}
+          />
+        ) : null}
       </Container>
     </Layout>
   );
@@ -62,6 +64,7 @@ export const query = graphql`
         }
       }
       title
+      comments
       postDate(formatString: "MMM DD, YYYY")
       fields {
         slug
