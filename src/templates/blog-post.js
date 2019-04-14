@@ -30,7 +30,7 @@ export default ({ data }) => {
       <Container>
         <Heading>
           <H1>{post.title}</H1>
-          <DateLine>{post.date}</DateLine>
+          <DateLine>{post.postDate}</DateLine>
         </Heading>
         <MDXRenderer>
           {data.contentfulBlogPost.body.childMdx.code.body}
