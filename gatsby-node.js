@@ -4,6 +4,7 @@ const { createFilePath } = require('gatsby-source-filesystem');
 exports.onCreateNode = ({ node, getNode, actions }) => {
   const { createNodeField } = actions;
   if (node.internal.type === `Mdx`) {
+    if (node.frontmatter.title === '') return;
     const baseSlug = createFilePath({ node, getNode, basePath: 'posts' });
     let nameArr = baseSlug.replace(/\//g, '').split('-');
     //date = nameArr.splice(0, 3).join("-");
